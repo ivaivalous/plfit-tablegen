@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
+	"os/exec"
+	"path"
 	"regexp"
 	"strconv"
 )
@@ -16,9 +19,28 @@ var (
 )
 
 type Data struct {
+	Filename                string
 	Type                    string
 	Frame, Period, StructNo int
 	Alpha, XMin             float64
+}
+
+func (d *Data) String() string {
+	return fmt.Sprintf(`
+File name: %s
+Frame:     %d
+Type:      %s
+Period:    %d
+Struct#:   %d`, d.Filename, d.Frame, d.Type, d.Period, d.StructNo)
+}
+
+func (d *Data) ExecutePlfit() (output string, err error) {
+	out, err := exec.Command("plfit", d.Filename).Output()
+	if err != nil {
+		return string(out), err
+	}
+
+	return string(out), nil
 }
 
 func fromRegexp(name string) *Data {
@@ -35,7 +57,7 @@ func fromRegexp(name string) *Data {
 	return datum
 }
 
-func collectData(source string) (data []Data, err error) {
+func collectData(source string) (data []*Data, err error) {
 	files, err := ioutil.ReadDir(source)
 	if err != nil {
 		return data, err
@@ -43,7 +65,9 @@ func collectData(source string) (data []Data, err error) {
 
 	for _, f := range files {
 		if nameExpression.MatchString(f.Name()) {
-			data = append(data, *fromRegexp(f.Name()))
+			file := fromRegexp(f.Name())
+			file.Filename = path.Join(source, f.Name())
+			data = append(data, file)
 		}
 	}
 	return data, nil
