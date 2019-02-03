@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"plfit-tablegen/fittools"
 )
 
 func main() {
@@ -11,7 +12,7 @@ func main() {
 		os.Exit(1)
 	}
 	src := os.Args[1]
-	files, err := collectData(src)
+	files, err := fittools.CollectData(src)
 	if err != nil {
 		fmt.Println("Error: " + err.Error())
 		os.Exit(1)

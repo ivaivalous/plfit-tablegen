@@ -1,6 +1,7 @@
-package main
+package fittools
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os/exec"
@@ -14,6 +15,8 @@ const (
 	// shall be ignored.
 	nameRegex = `^[\w\d\-]+_(?P<Frame>\d+)_(?P<Type>[\w\d\-]+)_` +
 		`(?P<Period>\d+)_[\w\d\-]+_(?P<StructNo>\d+)\.dat$`
+	noneFoundErr = "no files found, make sure you are using the correct " +
+		"naming pattern: %q"
 )
 
 var (
@@ -73,10 +76,10 @@ func fromRegexp(name string) *Data {
 	return datum
 }
 
-// collectData goes through the files at the location specified as source,
+// CollectData goes through the files at the location specified as source,
 // looking for ones that match the expression defined as nameRegex.
 // The function will not traverse through directories recursively.
-func collectData(source string) (data []*Data, err error) {
+func CollectData(source string) (data []*Data, err error) {
 	files, err := ioutil.ReadDir(source)
 	if err != nil {
 		return data, err
@@ -89,5 +92,11 @@ func collectData(source string) (data []*Data, err error) {
 			data = append(data, file)
 		}
 	}
+
+	if len(data) == 0 {
+		err = errors.New(fmt.Sprintf(noneFoundErr, nameRegex))
+		return data, err
+	}
+
 	return data, nil
 }
