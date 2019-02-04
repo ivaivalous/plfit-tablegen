@@ -1,13 +1,18 @@
 package fittools
 
 import (
+	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"path"
 	"regexp"
 	"strconv"
+	"strings"
+	"text/tabwriter"
 )
 
 const (
@@ -17,6 +22,14 @@ const (
 		`(?P<Period>\d+)_[\w\d\-]+_(?P<StructNo>\d+)\.dat$`
 	noneFoundErr = "no files found, make sure you are using the correct " +
 		"naming pattern: %q"
+)
+
+// Settings related to printing data as a table.
+// See https://golang.org/pkg/text/tabwriter/#NewWriter
+const (
+	tableMinWidth = 2
+	tabWidth      = 2
+	padding       = 1
 )
 
 var (
@@ -40,7 +53,10 @@ File name: %s
 Frame:     %d
 Type:      %s
 Period:    %d
-Struct#:   %d`, d.Filename, d.Frame, d.Type, d.Period, d.StructNo)
+Struct#:   %d
+Alpha:     %f
+XMin:      %f`,
+		d.Filename, d.Frame, d.Type, d.Period, d.StructNo, d.Alpha, d.XMin)
 }
 
 // ExecutePlfit runs `plfit` and extracts data from its output, populating
@@ -48,13 +64,41 @@ Struct#:   %d`, d.Filename, d.Frame, d.Type, d.Period, d.StructNo)
 // In order for the call to succeed, make sure `plfit` is available via
 // the system path.
 // See http://tuvalu.santafe.edu/~aaronc/powerlaws/
-func (d *Data) ExecutePlfit() (output string, err error) {
+func (d *Data) ExecutePlfit() error {
 	out, err := exec.Command("plfit", d.Filename).Output()
 	if err != nil {
-		return string(out), err
+		return err
 	}
+	output := *parsePlfitOutput(&out)
+	d.Alpha, err = strconv.ParseFloat(output["alpha"], 32)
+	if err != nil {
+		return err
+	}
+	d.Alpha -= 1.0
 
-	return string(out), nil
+	d.XMin, err = strconv.ParseFloat(output["xmin"], 32)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// parsePlfitOutput parses plfit's output into a map.
+// Plfit's output consists of key-value pairs, separated by an equals sign,
+// one per line.
+// Lines that don't contain an equal sign have meta information and
+// are ignored.
+func parsePlfitOutput(output *[]byte) *map[string]string {
+	result := make(map[string]string)
+	scanner := bufio.NewScanner(bytes.NewReader(*output))
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.Contains(line, "=") {
+			parts := strings.Split(line, "=")
+			result[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
+		}
+	}
+	return &result
 }
 
 // fromRegexp extracts data (frame, type, period, struct #) from the name
@@ -99,4 +143,18 @@ func CollectData(source string) (data []*Data, err error) {
 	}
 
 	return data, nil
+}
+
+// AsTable generates a table representation of the presented data and writes
+// it to the specified file (usually os.Stdin).
+func AsTable(f *os.File, data []*Data) {
+	w := tabwriter.NewWriter(
+		f, tableMinWidth, tabWidth, padding, ' ', tabwriter.AlignRight)
+	fmt.Fprintln(w, "Frame\t Hd/Ht \tPeriod \tDP\t n\t")
+	for _, f := range data {
+		fmt.Fprintf(
+			w, "%d\t %s\t %d\t %f\t %f\t\n",
+			f.Frame, f.Type, f.Period, f.XMin, f.Alpha)
+	}
+	w.Flush()
 }

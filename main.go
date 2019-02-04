@@ -6,12 +6,24 @@ import (
 	"plfit-tablegen/fittools"
 )
 
+// This program executes `plfit` for all files in the specified folders,
+// collecting data from the filenames (frame, type, period, and struct number)
+// and xmin and alpha, found in plfit's output.
+// Then it outputs the collected data as a formatted table to stdin.
+// In order to run the program, make sure you have plfit preinstalled.
+
+const maxParallel = 4
+const usageInfo = `Usage: plfit-tablegen <source path> [--silent]
+When silent is on, only the table will be output.
+Source: https://github.com/ivaivalous/plfit-tablegen`
+
 func main() {
 	if len(os.Args) == 1 {
-		fmt.Println("Usage: plfit-tablegen <source path>")
+		fmt.Println(usageInfo)
 		os.Exit(1)
 	}
 	src := os.Args[1]
+	silent := len(os.Args) >= 3 && os.Args[2] == "--silent"
 	files, err := fittools.CollectData(src)
 	if err != nil {
 		fmt.Println("Error: " + err.Error())
@@ -19,12 +31,13 @@ func main() {
 	}
 
 	for _, f := range files {
-		fmt.Println(f)
-		if out, err := f.ExecutePlfit(); err != nil {
+		if !silent {
+			fmt.Println("Processing", f.Filename)
+		}
+		if err := f.ExecutePlfit(); err != nil {
 			fmt.Println(err)
-			os.Exit(1)
-		} else {
-			fmt.Println(out)
 		}
 	}
+
+	fittools.AsTable(os.Stdout, files)
 }
