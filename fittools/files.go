@@ -38,13 +38,13 @@ var (
 
 // Data represents all known data about a file.
 // It includes the information that can be obtained from the dat file
-// (frame, type, period, and struct number), as well as alpha and xmin,
+// (frame, type, period, and struct number), as well as alpha, xmin, and L,
 // which are obtained using `plfit`.
 type Data struct {
 	Filename                string
 	Type                    string
 	Frame, Period, StructNo int
-	Alpha, XMin             float64
+	Alpha, XMin, L          float64
 }
 
 func (d *Data) String() string {
@@ -55,8 +55,10 @@ Type:      %s
 Period:    %d
 Struct#:   %d
 Alpha:     %f
-XMin:      %f`,
-		d.Filename, d.Frame, d.Type, d.Period, d.StructNo, d.Alpha, d.XMin)
+XMin:      %f
+L:         %f`,
+		d.Filename, d.Frame, d.Type, d.Period,
+		d.StructNo, d.Alpha, d.XMin, d.L)
 }
 
 // ExecutePlfit runs `plfit` and extracts data from its output, populating
@@ -77,6 +79,11 @@ func (d *Data) ExecutePlfit() error {
 	d.Alpha -= 1.0
 
 	d.XMin, err = strconv.ParseFloat(output["xmin"], 32)
+	if err != nil {
+		return err
+	}
+
+	d.L, err = strconv.ParseFloat(output["L"], 32)
 	if err != nil {
 		return err
 	}
@@ -150,11 +157,11 @@ func CollectData(source string) (data []*Data, err error) {
 func AsTable(f *os.File, data []*Data) {
 	w := tabwriter.NewWriter(
 		f, tableMinWidth, tabWidth, padding, ' ', tabwriter.AlignRight)
-	fmt.Fprintln(w, "Frame\t Hd/Ht \tPeriod \tDP\t n\t")
+	fmt.Fprintln(w, "Frame\tHd/Ht\tPeriod\tDP\tn\tL\t")
 	for _, f := range data {
 		fmt.Fprintf(
-			w, "%d\t %s\t %d\t %f\t %f\t\n",
-			f.Frame, f.Type, f.Period, f.XMin, f.Alpha)
+			w, "%d\t %s\t %d\t %f\t %f\t%f\t\n",
+			f.Frame, f.Type, f.Period, f.XMin, f.Alpha, f.L)
 	}
 	w.Flush()
 }
