@@ -12,7 +12,6 @@ import (
 // Then it outputs the collected data as a formatted table to stdin.
 // In order to run the program, make sure you have plfit preinstalled.
 
-const maxParallel = 4
 const usageInfo = `Usage: plfit-tablegen <source path> [--silent]
 When silent is on, only the table will be output.
 Source: https://github.com/ivaivalous/plfit-tablegen`
