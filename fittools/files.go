@@ -157,11 +157,11 @@ func CollectData(source string) (data []*Data, err error) {
 func AsTable(f *os.File, data []*Data) {
 	w := tabwriter.NewWriter(
 		f, tableMinWidth, tabWidth, padding, ' ', tabwriter.AlignRight)
-	fmt.Fprintln(w, "Frame\tHd/Ht\tPeriod\tDP\tn\tL\t")
+	fmt.Fprintln(w, "Frame\tH2/Ht\tPeriod\tStructure\tDP\tn\tL\t")
 	for _, f := range data {
 		fmt.Fprintf(
-			w, "%d\t %s\t %d\t %f\t %f\t%f\t\n",
-			f.Frame, f.Type, f.Period, f.XMin, f.Alpha, f.L)
+			w, "%d\t%s\t%d\t%d\t%f\t%f\t%f\t\n",
+			f.Frame, f.Type, f.Period, f.StructNo, f.XMin, f.Alpha, f.L)
 	}
 	w.Flush()
 }
