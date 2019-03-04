@@ -5,7 +5,7 @@ A small utility to summarize `plfit` data.
 ## Install
 
 ```
-git clone https://github.com/ivaivalous/plfit-tablegen.git
+go get ivo.qa/plfit-tablegen
 cd plfit-tablegen
 go build
 ```
@@ -17,7 +17,7 @@ go build
 ## Run
 
 ```
-plfit-tablegen <path containing .dat files> [--silent]
+./plfit-tablegen <path containing .dat files> [--silent]
 ```
 
 ## Output
