@@ -3,7 +3,7 @@ package main /* import "ivo.qa/plfit-tablegen" */
 import (
 	"fmt"
 	"os"
-	"plfit-tablegen/fittools"
+	"ivo.qa/plfit-tablegen/fittools"
 )
 
 // This program executes `plfit` for all files in the specified folders,
