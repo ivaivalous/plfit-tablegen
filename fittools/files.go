@@ -1,4 +1,4 @@
-package fittools
+package fittools /* import "ivo.qa/plfit-tablegen/fittools" */
 
 import (
 	"bufio"
