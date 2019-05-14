@@ -18,6 +18,9 @@ go build
  ^[\w\d\-]+_(?P<Frame>\d+)_(?P<Type>[\w\d\-]+)_(?P<Period>\d+)_[\w\d\-]+_(?P<StructNo>\d+)\.dat$
  ```
 
+For example:
+ - GMC_1_Ht_150_structure_916.dat
+ - GMC_1_Ht_200_structure_1354.dat
 
 ## Run
 
