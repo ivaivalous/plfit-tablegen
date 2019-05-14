@@ -12,6 +12,12 @@ go build
 
 ## Prerequisites
  - [`plfit`](https://pypi.org/project/plfit/) must be installed
+ 
+ The .dat files must follow this naming convention regular expression:
+ 
+ ```
+ ^[\w\d\-]+_(?P<Frame>\d+)_(?P<Type>[\w\d\-]+)_(?P<Period>\d+)_[\w\d\-]+_(?P<StructNo>\d+)\.dat$
+ ```
 
 
 ## Run
