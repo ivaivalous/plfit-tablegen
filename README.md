@@ -28,6 +28,16 @@ For example:
 ./plfit-tablegen <path containing .dat files> [--silent]
 ```
 
+To run for multiple files distributed in subdirectories, you can use a bash script, e.g.:
+
+```
+for d in ./*; do
+  if [ -d "$d" ]; then
+    ./plfit-tablegen "$d"
+  fi
+done
+```
+
 ## Output
 
 For example,
